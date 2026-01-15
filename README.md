@@ -46,34 +46,62 @@ Antes de começar, certifique-se de ter uma conta na AWS. Se precisar de ajuda p
 
 Esperamos que esta experiência tenha sido enriquecedora e que você tenha aprendido mais sobre Machine Learning aplicado a problemas reais. Se tiver alguma dúvida, não hesite em abrir uma issue neste repositório ou entrar em contato com a equipe da DIO.
 
-### Métricas da aba Analyze
+# 📊 Previsão de Estoque Inteligente na AWS com SageMaker Canvas
 
-<img width="1557" height="869" alt="image" src="https://github.com/user-attachments/assets/6255dbc1-53fe-4434-8b72-d5b899c919c6" />
+Bem-vindo ao desafio de projeto "Previsão de Estoque Inteligente na AWS com SageMaker Canvas". Neste Lab da DIO, utilizei o Amazon SageMaker Canvas para criar previsões de estoque baseadas em Machine Learning (ML), passando por todo o ciclo de vida de um projeto de Data Science: desde a preparação dos dados até a análise de métricas de performance.
 
-### O que significam:
-- MAPE (Mean Absolute Percentage Error) de 11% = Excelente. O erro médio absoluto é de apenas 11%. Se o estoque real for 100 unidades, o modelo prevê algo entre 89 e 111. Para varejo e estoque, um MAPE abaixo de 15-20% já é considerado muito bom.
-- WAPE (Weighted A.P.E.) de 10.7% = O erro ponderado é ainda menor que o MAPE. Isso indica que o modelo acerta ainda mais quando os volumes de estoque são altos (onde o erro custaria mais caro) e talvez erre um pouco mais nos volumes baixos, o que é o comportamento ideal.
-- Avg. wQL (Weighted Quantile Loss) de 0.066 = Impressionante. Quanto mais próximo de zero, melhor. Um valor de 0.066 indica que o modelo tem altíssima confiança nas faixas de probabilidade (P10, P50, P90). Ele não está "chutando" valores aleatórios; ele tem certeza da zona onde o valor cairá.
-- RMSE (Root Mean Square Error) de 1.666 = O erro padrão é de aproximadamente 1,6 unidades de estoque. Dependendo da escala do seu produto (se você vende centenas por dia), errar por 1 ou 2 unidades é virtualmente irrelevante. É uma precisão cirúrgica.
-- MASE (Mean Absolute Scaled Error) de 0.840 = O selo de qualidade. Como o valor é menor que 1.0, isso prova matematicamente que o seu modelo de Machine Learning é melhor do que uma "previsão ingênua" (apenas repetir o valor de ontem). O ML está agregando valor real.
+## 📋 Pré-requisitos e Ferramentas
 
-### Olhando o impacto das colunas
-O que é mais importante" para o modelo matemático que ele criou...
+* **Conta AWS Ativa**
+* **Amazon SageMaker Canvas**: Ferramenta No-Code para construção de modelos de ML.
+* **Dataset**: Histórico de estoque e vendas (disponível na pasta `datasets`).
 
-- 1. O Grande Motor: QUANT_ESTOQUE (39.37%)
-Esta variável tem um impacto massivo, respondendo por quase 40% da "inteligência" da previsão.
-O que significa: O modelo encontrou uma correlação fortíssima entre a quantidade de estoque que você tem disponível e o quanto você vende.
-- 2. O Fator Sazonal: Holiday_BR (10.34%)
-Os feriados brasileiros têm um peso relevante (~10%), mas são secundários em relação ao estoque.
-O que significa: O modelo aprendeu que em dias marcados como "Feriado", o comportamento de compra muda (para melhor ou pior, dependendo do seu ramo).
+## 🎯 Objetivos do Projeto
 
+O objetivo principal foi desenvolver um modelo capaz de prever o comportamento do estoque de varejo, auxiliando na tomada de decisão para evitar *stockouts* (falta de produtos) ou excesso de armazenamento.
+
+## 🚀 Passo a Passo da Implementação
+
+### 1. Seleção e Ingestão de Dados
+Naveguei até a pasta `datasets` deste repositório e escolhi o arquivo contendo histórico de vendas. O dataset foi carregado no SageMaker Canvas, onde foi feita a análise exploratória preliminar para identificar colunas críticas.
+
+### 2. Construção e Treinamento (Build & Train)
+A fase de treinamento foi configurada com as seguintes premissas:
+* **Dataset Importado**: Varejo e Estoque.
+* **Variável Target**: `QUANT_ESTOQUE` (O que queremos prever).
+* **Identificador de Item**: `ID_PRODUTO`.
+* **Carimbo de Data/Hora**: `DATA_EVENTO`.
+* **Modelagem**: Time Series Forecasting (Previsão de Séries Temporais).
+
+### 🧠 Análise e Implementações Técnicas (O Diferencial)
+
+Durante a configuração do modelo, foram aplicadas estratégias para maximizar a precisão:
+
+1.  **Sazonalidade e Feriados:** A coluna `Holiday_BR` foi fundamental. O modelo detectou que feriados nacionais impactam diretamente o fluxo de estoque (impacto de **~10.3%** na previsão), ajustando a curva de demanda para essas datas específicas.
+
+2.  **Influência de Variáveis:**
+    A análise de correlação mostrou que a variável `QUANT_ESTOQUE` histórica é o maior preditor (**~39.3%** de impacto), validando a consistência dos dados de entrada.
 <img width="540" height="323" alt="image" src="https://github.com/user-attachments/assets/d2993343-a5f6-4504-a892-1f02e00d6167" />
 
-### Simgle Prediction
-- P10 = Pessimista
-- p50 = Balanceado
-- p90 = Otimista
+3.  **Métricas de Performance Otimizadas:**
+    O modelo final alcançou métricas de alta precisão, superando benchmarks tradicionais de varejo:
+    * **MAPE (Mean Absolute Percentage Error): 11%**. Isso indica uma margem de erro muito baixa. Para cada 100 unidades, o modelo erra em média apenas 11.
+    * **WAPE (Weighted A.P.E.): 10.7%**. O erro ponderado é ainda menor, demonstrando que o modelo é extremamente confiável em volumes altos de estoque, onde o risco financeiro é maior.
+    * **MASE: 0.840**. Sendo menor que 1, comprova que o modelo de ML é matematicamente superior a uma previsão "ingênua" (média simples).
+<img width="1557" height="869" alt="image" src="https://github.com/user-attachments/assets/6255dbc1-53fe-4434-8b72-d5b899c919c6" />
+
+### 4. Previsão e Resultados (Predict)
+O modelo gerou previsões probabilísticas para auxiliar na gestão de risco:
+* **P10 (Cenário Pessimista):** Limite inferior de estoque recomendado.
+* **P50 (Cenário Realista):** A previsão mais provável.
+* **P90 (Cenário Otimista):** Limite superior para datas de alta demanda.
 <img width="1766" height="685" alt="image" src="https://github.com/user-attachments/assets/6ec122e5-ec23-473c-a6be-456a65444429" />
+## 📈 Conclusões
+
+O uso do SageMaker Canvas permitiu criar um modelo robusto sem a necessidade de codificação complexa, mas com toda a inteligência estatística necessária. As métricas obtidas (especialmente o **Avg. wQL de 0.066**) demonstram que o modelo tem alta confiança em suas faixas de predição, tornando-o uma ferramenta viável para aplicação real em logística e varejo.
+
+---
+*Projeto desenvolvido como parte do Bootcamp da DIO.*
 
 
 
